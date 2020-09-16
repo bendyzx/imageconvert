@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# ImageSaver
+# imageconvert
 # Ben Daluz
 # https://github.com/bendyzx/imageconvert
 # released under the unlicense, see http://unlicense.org 
