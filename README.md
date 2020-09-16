@@ -1,5 +1,8 @@
 imageconvert by Ben Daluz 2020
 ------------------------------
+
+imageconvert takes a source image, resizes it and maps the palette to best available from the 512 colours on the Spectrum Next. Of those, it picks the 256 most used colours and writes out a target image with that palette. Non used palette entries are placed at the end of the range and set to 0,0,0
+
 imageconvert usage:
 
 - py.exe -3.8 imageconvert.py sourcefile
