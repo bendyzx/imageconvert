@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# imageconvert
+# ImageConvert
 # Ben Daluz
 # https://github.com/bendyzx/imageconvert
 # released under the unlicense, see http://unlicense.org 
@@ -19,6 +19,7 @@ import math
 import glob
 import timeit
 import datetime
+import io
 
 assert sys.version_info >= (3, 6)
 
@@ -56,6 +57,31 @@ def resizeImage(image):
         return newImage        
     return image.convert("RGB")
 
+def Get3bitColor(col):
+    if col < 19:
+        c = 0
+    else:
+        if col < 54:       #36
+            c = 1
+        else:
+            if col < 91:      #73
+                c = 2
+            else:
+                if col < 127:     #109
+                    c = 3
+                else:
+                    if col < 164:     #146
+                        c = 4
+                    else:
+                        if col < 200:     #182
+                            c = 5
+                        else:
+                            if col < 237:     #219
+                                c = 6
+                            else:
+                                c = 7
+    return c
+
 def getBestPalette(image):
     global palettedictionary
 
@@ -63,43 +89,35 @@ def getBestPalette(image):
     pixels = image.load()
     newpalettelength = int(colours * 3)
     newpalette = [0 for x in range(newpalettelength)]
-    palettesize = int(len(palette512) /3)
-    paletteusage = [ [0, 0] for x in range(palettesize)]
+    ps = int(len(palette512) /3)
+    pu = [[0,-1, 0,0] for x in range(ps)]
+    pc = 0
     for i in range(width):
         for j in range(height):
             red, green, blue = pixels[i, j]
             if palettedictionary[red][green][blue] is None:
-                m = -1
-                for p in range(0, len(palette512), 3):
-                    if red == palette512[p] and green == palette512[p + 1] and blue == palette512[p + 2]:
-                        m = p
-                if m == -1:
-                    md = 999
-                    for p in range(0, len(palette512), 3):
-                        rr = red - palette512[p]
-                        gg = green - palette512[p + 1]
-                        bb = blue - palette512[p + 2]
-                        d = math.sqrt((rr * rr) + (gg * gg) + (bb * bb))
-                        if d < md:
-                            md = d
-                            m = p            
-                colno = int(m / 3)
-                palettedictionary[red][green][blue] = colno
-            colno = palettedictionary[red][green][blue]
-            if paletteusage[colno] is None:
-                paletteusage[colno] = [1, colno]
+                r = Get3bitColor(red)
+                g = Get3bitColor(green)
+                b = Get3bitColor(blue)
+                palettedictionary[red][green][blue] = (64 * r) + (8 * g) + b
+            pin = palettedictionary[red][green][blue]
+            pi = [idx for idx,element in enumerate(pu) if element[1] == pin]
+            if len(pi) == 0:
+                pu[pc] = [1, pin]
+                pc += 1            
             else:
-                paletteusage[colno] = [paletteusage[colno][1] + 1, colno]
+                pu[pi[0]][0] += 1                
     pos = 0
-    paletteusage.sort(reverse=True)
-    for palettecol in paletteusage:        
-        newpalettepos = pos * 3
-        if palettecol[0] > 0:
-            palettepos = palettecol[1] * 3
+    pu.sort(reverse=True)
+    pu = pu[0 : 256]
+    for u in pu:
+        pp = pos * 3
+        if u[0] > 0:
+            uu = u[1] * 3
             if pos < colours:
-                newpalette[newpalettepos] = palette512[palettepos] 
-                newpalette[newpalettepos + 1] = palette512[palettepos + 1] 
-                newpalette[newpalettepos + 2] = palette512[palettepos + 2]
+                newpalette[pp] = palette512[uu] 
+                newpalette[pp + 1] = palette512[uu + 1] 
+                newpalette[pp + 2] = palette512[uu + 2]            
         pos = pos + 1
     return newpalette
 
@@ -123,16 +141,39 @@ def processimage():
     else:
         saveimage(scaledImage)
 
+def saveNxi(image, targetfile):
+    buf = io.BytesIO()
+    image.save(buf, format='BMP')
+    filedata = buf.getvalue()
+    newfiledata = b''
+    for p in range(54, 1078, 4):
+        B = Get3bitColor(filedata[p])
+        G = Get3bitColor(filedata[p + 1])
+        R = Get3bitColor(filedata[p + 2])
+        p1 = (R << 5)
+        p1 |= (G << 2)
+        p1 |= (B >> 1)
+        p2 = B & 1
+        newfiledata += p1.to_bytes(1, "big") + p2.to_bytes(1, "big")
+    for b in range(50229, 1077, -256):
+        for c in range(255, -1, -1):
+            newfiledata += filedata[b - c].to_bytes(1, "big")
+    with open(targetfile, 'wb') as tgtfile:
+        tgtfile.write(newfiledata)
+
 def saveimage(image):
     d = math.ceil(math.sqrt(colours))
     palimage = Image.new('P', (d, d))
     pal = getBestPalette(image)
     palimage.putpalette(pal)
     newimage = quantizetopalette(image, palimage)
-    try:
-        newimage.save(targetfile)
-    except:
-        newimage.convert('RGB').save(targetfile)
+    if targetfile.endswith('.nxi'):
+        saveNxi(newimage, targetfile)
+    else:
+        try:
+            newimage.save(targetfile)
+        except:
+            newimage.convert('RGB').save(targetfile)
 
 def quantizetopalette(image, palette):
     """Convert an RGB or L mode image to use a given P image's palette."""
@@ -160,7 +201,12 @@ def info():
     print(f'default options are: -s 256,192 -c 256 -o ic-<filename>\n')
     print(f'n.b. the output filename extension determines the file format\n')
     print(f' - if you dont specify the output filename with a different extension to the')
-    print(f'   source, the output image will be in the same format as the source')
+    print(f'   source, the output image will be in the same format as the source\n')
+    print(f' - ImageConvert supports the .nxi filename extension')
+    print(f'   This will output a Spectrum Next Layer 2 screen format with palette')
+    print(f'   The file will be 49,664 bytes in size and contains the 256x192 pixels')
+    print(f'   of layer 2 data prepended with 512 bytes of palette data (256 pairs')
+    print(f'   of bytes in %RRRGGGBB, %P000000B format')
 
 print(f'------------------------------')
 print(f'imageconvert by Ben Daluz 2020')
