@@ -30,10 +30,10 @@ default options are: ```-s 256,192 -c 256 -o ic-sourcefile```
 
 **n.b. the output filename extension determines the file format**
 
-*if you dont specify the output filename with a different extension to the
+* if you dont specify the output filename with a different extension to the
   source, the output image will be in the same format as the source
 
-*ImageConvert supports the .nxi filename extension
+* ImageConvert supports the .nxi filename extension
   This will output a Spectrum Next Layer 2 screen format with palette
   The file will be 49,664 bytes in size and contains the 256x192 pixels
   of layer 2 data prepended with 512 bytes of palette data (256 pairs
