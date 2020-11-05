@@ -6,13 +6,13 @@ imageconvert has been tested with Python 3.8. It may work with versions earlier 
 
 ## Usage:
 
-```py.exe -3.8 imageconvert.py sourcefile```
-```py.exe -3.8 imageconvert.py sourcefile -s 256,192```
-```py.exe -3.8 imageconvert.py sourcefile -c 256```
-```py.exe -3.8 imageconvert.py sourcefile -a```
-```py.exe -3.8 imageconvert.py sourcefile -g```
-```py.exe -3.8 imageconvert.py sourcefile -d```
-```py.exe -3.8 imageconvert.py sourcefile -o outputfile```
+* `py.exe -3.8 imageconvert.py sourcefile`
+* `py.exe -3.8 imageconvert.py sourcefile -s 256,192`
+* `py.exe -3.8 imageconvert.py sourcefile -c 256`
+* `py.exe -3.8 imageconvert.py sourcefile -a`
+* `py.exe -3.8 imageconvert.py sourcefile -g`
+* `py.exe -3.8 imageconvert.py sourcefile -d`
+* `py.exe -3.8 imageconvert.py sourcefile -o outputfile`
 
 Any of the above arguments can be used in conjunction. e.g:
 
@@ -20,20 +20,20 @@ Any of the above arguments can be used in conjunction. e.g:
 
 default options are: ```-s 256,192 -c 256 -o ic-sourcefile```
 
-available options:
-  ```-s x,y            image size```
-  ```-c                number of colours```
-  ```-a                maintain aspect ratio```
-  ```-g                greyscale```
-  ```-d                dither```
-  ```-o outputfile     specify output filename```
+**available options:**
+* `-s x,y            image size`
+* `-c                number of colours`
+* `-a                maintain aspect ratio`
+* `-g                greyscale`
+* `-d                dither`
+* `-o outputfile     specify output filename`
 
 **n.b. the output filename extension determines the file format**
 
-- if you dont specify the output filename with a different extension to the
+*if you dont specify the output filename with a different extension to the
   source, the output image will be in the same format as the source
 
-- ImageConvert supports the .nxi filename extension
+*ImageConvert supports the .nxi filename extension
   This will output a Spectrum Next Layer 2 screen format with palette
   The file will be 49,664 bytes in size and contains the 256x192 pixels
   of layer 2 data prepended with 512 bytes of palette data (256 pairs
